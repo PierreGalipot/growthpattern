@@ -1,16 +1,17 @@
-// Model proposed by De Gomensoro Malheiros et al. 2020 (https://dl.acm.org/doi/abs/10.1145/3386569.3392478)
+// Code: Pierre Galipot (https://www.biorxiv.org/content/10.1101/2023.02.16.528816v2.abstract)
+// Custom model based on a Turing mathematical model proposed by De Gomensoro Malheiros et al. 2020 (https://dl.acm.org/doi/abs/10.1145/3386569.3392478)
 
-final int largeur = 250; //largeur de la grille
-final int hauteur = 250; //hauteur de la grille
-float a0[][] = new float [hauteur][largeur]; //matrice 2D des anciennes valeurs de a
-float b0[][] = new float [hauteur][largeur]; //matrice 2D des nouvelles valeurs de a
-float a1[][] = new float [hauteur][largeur]; //matrice 2D des anciennes valeurs de b
-float b1[][] = new float [hauteur][largeur]; //matrice 2D des nouvelles valeurs de b
-final float s = 6; //facteur de scaling (paramètre du modèle de Turing). default value : 3
-final float r = 30;//facteur de reaction (paramètre du modèle de Turing). default value : 20
-final float g = 0.01;//growth rate. default value : 
+final int largeur = 250; //grid width
+final int hauteur = 250; //grid height
+float a0[][] = new float [hauteur][largeur]; //2D matrix of "a" old values
+float b0[][] = new float [hauteur][largeur]; //2D matrix of "b" old values
+float a1[][] = new float [hauteur][largeur]; //2D matrix of "a" new values
+float b1[][] = new float [hauteur][largeur]; //2D matrix of "b" new values
+final float s = 6; //scaling factor (Turing model parameter). default value : 3
+final float r = 30;//reaction factor (Turing model parameter). default value : 20
+final float g = 0.01;//growth rate. default value : 0.01
 float d = 1;// Diffusion scaling by growth
-float dt = 0.002;//deltatime. default value : 0.006
+float dt = 0.002;//deltatime. default value : 0.002
 final float minA = 0;
 final float maxA = 4.4;
 final float minB = 3.5;
@@ -20,9 +21,9 @@ int tpicture = 0;
 
 
 void setup() {
-size(250, 500); //taille du canevas
+size(250, 500); //canevas size
 textSize(12);
-//calcul de l'état initial (valeur de a fixe (4), valeur de b aléatoire entre 4 et 5)
+//calculation of initial state ("a" value constant, "b" value random float comprised between 4 and 5)
   for (int i = 0; i < hauteur; i++) {
     for (int j = 0; j < largeur; j++) {
       float ainit = 4;
@@ -43,11 +44,11 @@ void update() {
   for (int i = 1; i < hauteur-1; i++) {
     for (int j = 1; j < largeur-1; j++) {
 
-      float oldvaluea = a0[i][j]; //on récupère la valeur actuelle de a
-      float oldvalueb = b0[i][j]; //on récupère la valeur actuelle de b
+      float oldvaluea = a0[i][j]; //get actual "a" value
+      float oldvalueb = b0[i][j]; //get actual "b" value
       
 
-      float laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+      float laplaceA = 0; // calculation of Laplacian from the eight closer neighbors
       //laplaceA += oldvaluea*(-20/6);
       laplaceA -= oldvaluea*20.00/6.00;
       laplaceA += a0[i+1][j]*4.00/6.00;
@@ -59,7 +60,7 @@ void update() {
       laplaceA += a0[i-1][j+1]*1.00/6.00;
       laplaceA += a0[i+1][j+1]*1.00/6.00;
 
-      float laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+      float laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
       //laplaceB += oldvalueb*(-20/6);
       laplaceB -= oldvalueb*20.00/6.00;
       laplaceB += b0[i+1][j]*4.00/6.00;
@@ -71,26 +72,26 @@ void update() {
       laplaceB += b0[i-1][j+1]*1.00/6.00;
       laplaceB += b0[i+1][j+1]*1.00/6.00;
 
-      // calcul de la nouvelle valeur de a et b (modèle de Turing)
+      // calculation of new value of a and b (Turing model)
       //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
       //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
       float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
       float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
       
-      // encadrement des nouvelles valeurs de a et b
+      // Constraining of the new "a" and "b" values
       newvaluea = constrain(newvaluea, minA, maxA);
       newvalueb = constrain(newvalueb, minB, maxB);
       a1[i][j] = newvaluea;
       b1[i][j] = newvalueb;
     }
    }
-// calcul des bords
-  // bord gauche   
+// Borders calculation
+  // Left border 
   for (int i = 1; i < hauteur-1; i++) {
-    float oldvaluea = a0[i][0]; //on récupère la valeur actuelle de a
-    float oldvalueb = b0[i][0]; //on récupère la valeur actuelle de b
+    float oldvaluea = a0[i][0]; //get actual "a" value
+    float oldvalueb = b0[i][0]; //get actual "b" value
     
-    float laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+    float laplaceA = 0; // calculation of Laplacian from the eight closer neighbors
     //laplaceA += oldvaluea*(-20/6);
     laplaceA -= oldvaluea*20.00/6.00;
     laplaceA += a0[i+1][0]*4.00/6.00;
@@ -102,7 +103,7 @@ void update() {
     laplaceA += a0[i-1][1]*1.00/6.00;
     laplaceA += a0[i+1][1]*1.00/6.00;
 
-    float laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+    float laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
     //laplaceB += oldvalueb*(-20/6);
     laplaceB -= oldvalueb*20.00/6.00;
     laplaceB += b0[i+1][0]*4.00/6.00;
@@ -114,24 +115,24 @@ void update() {
     laplaceB += b0[i-1][1]*1.00/6.00;
     laplaceB += b0[i+1][1]*1.00/6.00;
     
-    // calcul de la nouvelle valeur de a et b (modèle de Turing)
+    // calculation of new value of a and b (Turing model)
     //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
     //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
     float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
     float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
     
-    // encadrement des nouvelles valeurs de a et b
+    // Constraining of the new "a" and "b" values
     newvaluea = constrain(newvaluea, minA, maxA);
     newvalueb = constrain(newvalueb, minB, maxB);
     a1[i][0] = newvaluea;
     b1[i][0] = newvalueb;
 }
-// bord droit   
+// Right border
   for (int i = 1; i < hauteur-1; i++) {
-    float oldvaluea = a0[i][largeur-1]; //on récupère la valeur actuelle de a
-    float oldvalueb = b0[i][largeur-1]; //on récupère la valeur actuelle de b
+    float oldvaluea = a0[i][largeur-1]; //get actual "a" value
+    float oldvalueb = b0[i][largeur-1]; //get actual "b" value
     
-    float laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+    float laplaceA = 0; // calculation of Laplacian from the eight closer neighbors
     //laplaceA += oldvaluea*(-20/6);
     laplaceA -= oldvaluea*20.00/6.00;
     laplaceA += a0[i+1][largeur-1]*4.00/6.00;
@@ -143,7 +144,7 @@ void update() {
     laplaceA += a0[i-1][0]*1.00/6.00;
     laplaceA += a0[i+1][0]*1.00/6.00;
 
-    float laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+    float laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
     //laplaceB += oldvalueb*(-20/6);
     laplaceB -= oldvalueb*20.00/6.00;
     laplaceB += b0[i+1][largeur-1]*4.00/6.00;
@@ -155,25 +156,25 @@ void update() {
     laplaceB += b0[i-1][0]*1.00/6.00;
     laplaceB += b0[i+1][0]*1.00/6.00;
     
-    // calcul de la nouvelle valeur de a et b (modèle de Turing)
+    // calculation of new value of a and b (Turing model)
     //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
     //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
     float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
     float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
     
-    // encadrement des nouvelles valeurs de a et b
+    // Constraining of the new "a" and "b" values
     newvaluea = constrain(newvaluea, minA, maxA);
     newvalueb = constrain(newvalueb, minB, maxB);
     a1[i][largeur-1] = newvaluea;
     b1[i][largeur-1] = newvalueb;
    
   }
-  //bord bas
+  //Down border
   for (int j = 1; j < largeur-1; j++) {
-    float oldvaluea = a0[hauteur-1][j]; //on récupère la valeur actuelle de a
-    float oldvalueb = b0[hauteur-1][j]; //on récupère la valeur actuelle de b
+    float oldvaluea = a0[hauteur-1][j]; //get actual "a" value
+    float oldvalueb = b0[hauteur-1][j]; //get actual "b" value
     
-    float laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+    float laplaceA = 0; // calculation of Laplacian from the eight closer neighbors
     //laplaceA += oldvaluea*(-20/6);
     laplaceA -= oldvaluea*20.00/6.00;
     laplaceA += a0[0][j]*4.00/6.00;
@@ -185,7 +186,7 @@ void update() {
     laplaceA += a0[hauteur-2][j+1]*1.00/6.00;
     laplaceA += a0[0][j+1]*1.00/6.00;
 
-    float laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+    float laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
     //laplaceB += oldvalueb*(-20/6);
     laplaceB -= oldvalueb*20.00/6.00;
     laplaceB += b0[0][j]*4.00/6.00;
@@ -197,25 +198,25 @@ void update() {
     laplaceB += b0[hauteur-2][j+1]*1.00/6.00;
     laplaceB += b0[0][j+1]*1.00/6.00;
 
-    // calcul de la nouvelle valeur de a et b (modèle de Turing)
+    // calculation of new value of a and b (Turing model)
     //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
     //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
     float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
     float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
     
-    // encadrement des nouvelles valeurs de a et b
+    // Constraining of the new "a" and "b" values
     newvaluea = constrain(newvaluea, minA, maxA);
     newvalueb = constrain(newvalueb, minB, maxB);
     a1[hauteur-1][j] = newvaluea;
     b1[hauteur-1][j] = newvalueb;
   }
   
-  //bord haut
+  //Up border
   for (int j = 1; j < largeur-1; j++) {
-    float oldvaluea = a0[0][j]; //on récupère la valeur actuelle de a
-    float oldvalueb = b0[0][j]; //on récupère la valeur actuelle de b
+    float oldvaluea = a0[0][j]; //get actual "a" value
+    float oldvalueb = b0[0][j]; //get actual "b" value
     
-    float laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+    float laplaceA = 0; // Constraining of the new "a" and "b" values
     //laplaceA += oldvaluea*(-20/6);
     laplaceA -= oldvaluea*20.00/6.00;
     laplaceA += a0[1][j]*4.00/6.00;
@@ -227,7 +228,7 @@ void update() {
     laplaceA += a0[hauteur-1][j+1]*1.00/6.00;
     laplaceA += a0[1][j+1]*1.00/6.00;
 
-    float laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+    float laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
     //laplaceB += oldvalueb*(-20/6);
     laplaceB -= oldvalueb*20.00/6.00;
     laplaceB += b0[1][j]*4.00/6.00;
@@ -239,13 +240,13 @@ void update() {
     laplaceB += b0[hauteur-1][j+1]*1.00/6.00;
     laplaceB += b0[1][j+1]*1.00/6.00;
 
-    // calcul de la nouvelle valeur de a et b (modèle de Turing)
+    // calculation of new value of a and b (Turing model)
     //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
     //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
     float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
     float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
     
-    // encadrement des nouvelles valeurs de a et b
+    // Constraining of the new "a" and "b" values
     newvaluea = constrain(newvaluea, minA, maxA);
     newvalueb = constrain(newvalueb, minB, maxB);
     a1[0][j] = newvaluea;
@@ -253,11 +254,11 @@ void update() {
   }
 
   
-//calcul du coin 0,0
-float oldvaluea = a0[0][0]; //on récupère la valeur actuelle de a
-float oldvalueb = b0[0][0]; //on récupère la valeur actuelle de b
+//calculation of 0,0 corner
+float oldvaluea = a0[0][0]; //get actual "a" value
+float oldvalueb = b0[0][0]; //get actual "b" value
 
-float laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+float laplaceA = 0; // calculation of Laplacian from the eight closer neighbors
 //laplaceA += oldvaluea*(-20/6);
 laplaceA -= oldvaluea*20.00/6.00;
 laplaceA += a0[0][1]*4.00/6.00;
@@ -269,7 +270,7 @@ laplaceA += a0[hauteur-1][1]*1.00/6.00;
 laplaceA += a0[1][largeur-1]*1.00/6.00;
 laplaceA += a0[hauteur-1][largeur-1]*1.00/6.00;
 
-float laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+float laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
 //laplaceB += oldvalueb*(-20/6);
 laplaceB -= oldvalueb*20.00/6.00;
 laplaceB += b0[0][1]*4.00/6.00;
@@ -281,24 +282,24 @@ laplaceB += b0[hauteur-1][1]*1.00/6.00;
 laplaceB += b0[1][largeur-1]*1.00/6.00;
 laplaceB += b0[hauteur-1][largeur-1]*1.00/6.00;
 
-// calcul de la nouvelle valeur de a et b (modèle de Turing)
+// calculation of new value of a and b (Turing model)
 //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
 //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
 float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
 float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
 
-// encadrement des nouvelles valeurs de a et b
+// Constraining of the new "a" and "b" values
 newvaluea = constrain(newvaluea, minA, maxA);
 newvalueb = constrain(newvalueb, minB, maxB);
 a1[0][0] = newvaluea;
 b1[0][0] = newvalueb;
 
-//calcul du coin hauteur-1,largeur-1
+//calculation of corner height-1,width-1
 
-oldvaluea = a0[hauteur-1][largeur-1]; //on récupère la valeur actuelle de a
-oldvalueb = b0[hauteur-1][largeur-1]; //on récupère la valeur actuelle de b
+oldvaluea = a0[hauteur-1][largeur-1]; //get actual "a" value
+oldvalueb = b0[hauteur-1][largeur-1]; //get actual "b" value
 
-laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+laplaceA = 0; // calculation of Laplacian from the eight closer neighbors
 //laplaceA += oldvaluea*(-20/6);
 laplaceA -= oldvaluea*20.00/6.00;
 laplaceA += a0[0][largeur-1]*4.00/6.00;
@@ -310,7 +311,7 @@ laplaceA += a0[hauteur-2][largeur-2]*1.00/6.00;
 laplaceA += a0[hauteur-2][0]*1.00/6.00;
 laplaceA += a0[0][largeur-2]*1.00/6.00;
 
-laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
 //laplaceB += oldvalueb*(-20/6);
 laplaceB -= oldvalueb*20.00/6.00;
 laplaceB += b0[0][largeur-1]*4.00/6.00;
@@ -322,24 +323,24 @@ laplaceB += b0[hauteur-2][largeur-2]*1.00/6.00;
 laplaceB += b0[hauteur-2][0]*1.00/6.00;
 laplaceB += b0[0][largeur-2]*1.00/6.00;
 
-// calcul de la nouvelle valeur de a et b (modèle de Turing)
+// calculation of new value of "a" and "b" (Turing model)
 //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
 //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
 newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
 newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
 
-// encadrement des nouvelles valeurs de a et b
+// Constraining of the new "a" and "b" values
 newvaluea = constrain(newvaluea, minA, maxA);
 newvalueb = constrain(newvalueb, minB, maxB);
 a1[hauteur-1][largeur-1] = newvaluea;
 b1[hauteur-1][largeur-1] = newvalueb;
 
-//calcul du coin 0,largeur-1
+//calculation of corner 0,width-1
 
-oldvaluea = a0[0][largeur-1]; //on récupère la valeur actuelle de a
-oldvalueb = b0[0][largeur-1]; //on récupère la valeur actuelle de b
+oldvaluea = a0[0][largeur-1]; //get actual "a" value
+oldvalueb = b0[0][largeur-1]; //get actual "b" value
 
-laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+laplaceA = 0; // calculation of Laplacian from the eight closer neighbors
 //laplaceA += oldvaluea*(-20/6);
 laplaceA -= oldvaluea*20.00/6.00;
 laplaceA += a0[0][0]*4.00/6.00;
@@ -351,7 +352,7 @@ laplaceA += a0[hauteur-1][largeur-2]*1.00/6.00;
 laplaceA += a0[hauteur-1][0]*1.00/6.00;
 laplaceA += a0[1][largeur-2]*1.00/6.00;
 
-laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
 //laplaceB += oldvalueb*(-20/6);
 laplaceB -= oldvalueb*20.00/6.00;
 laplaceB += b0[0][0]*4.00/6.00;
@@ -363,24 +364,24 @@ laplaceB += b0[hauteur-1][largeur-2]*1.00/6.00;
 laplaceB += b0[hauteur-1][0]*1.00/6.00;
 laplaceB += b0[1][largeur-2]*1.00/6.00;
 
-// calcul de la nouvelle valeur de a et b (modèle de Turing)
+// calculation of new value of "a" and "b" (Turing model)
 //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
 //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
 newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
 newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
 
-// encadrement des nouvelles valeurs de a et b
+//  Constraining of the new "a" and "b" values
 newvaluea = constrain(newvaluea, minA, maxA);
 newvalueb = constrain(newvalueb, minB, maxB);
 a1[0][largeur-1] = newvaluea;
 b1[0][largeur-1] = newvalueb;
 
-//calcul du coin hauteur-1,0
+//calculation of corner height-1,0
 
-oldvaluea = a0[hauteur-1][0]; //on récupère la valeur actuelle de a
-oldvalueb = b0[hauteur-1][0]; //on récupère la valeur actuelle de b
+oldvaluea = a0[hauteur-1][0]; //get actual "a" value
+oldvalueb = b0[hauteur-1][0]; //get actual "b" value
 
-laplaceA = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+laplaceA = 0; // calculation of Laplacian from the eight closer neighbors
 //laplaceA += oldvaluea*(-20/6);
 laplaceA -= oldvaluea*20.00/6.00;
 laplaceA += a0[hauteur-1][1]*4.00/6.00;
@@ -392,7 +393,7 @@ laplaceA += a0[hauteur-1][1]*1.00/6.00;
 laplaceA += a0[0][largeur-1]*1.00/6.00;
 laplaceA += a0[hauteur-2][largeur-1]*1.00/6.00;
 
-laplaceB = 0; // calcul du laplacien à partir des 8 voisins les plus proches
+laplaceB = 0; // calculation of Laplacian from the eight closer neighbors
 //laplaceB += oldvalueb*(-20/6);
 laplaceB -= oldvalueb*20.00/6.00;
 laplaceB += b0[hauteur-1][1]*4.00/6.00;
@@ -404,19 +405,19 @@ laplaceB += b0[hauteur-1][1]*1.00/6.00;
 laplaceB += b0[0][largeur-1]*1.00/6.00;
 laplaceB += b0[hauteur-2][largeur-1]*1.00/6.00;
 
-// calcul de la nouvelle valeur de a et b (modèle de Turing)
+// calculation of new value of "a" and "b" (Turing model)
 //float newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + r*s*laplaceA*oldvaluea)*0.0006; //dt=0.006 -> travelling wave
 //float newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + s*laplaceB*oldvalueb)*0.0006; //dt=0.006 -> travelling wave
 newvaluea = oldvaluea + (16 - oldvaluea*oldvalueb + d*r*s*laplaceA)*dt; //dt=0.006 -> travelling wave
 newvalueb = oldvalueb + (oldvaluea*oldvalueb - oldvalueb - 12 + d*s*laplaceB)*dt; //dt=0.006 -> travelling wave
 
-// encadrement des nouvelles valeurs de a et b
+// Constraining of the new "a" and "b" values
 newvaluea = constrain(newvaluea, minA, maxA);
 newvalueb = constrain(newvalueb, minB, maxB);
 a1[hauteur-1][0] = newvaluea;
 b1[hauteur-1][0] = newvalueb;
 
-//copie de a1 et b1 dans a0 et b0
+//copy of a1 and b1 in a0 and b0
 arrayCopy(a1,a0);
 arrayCopy(b1,b0);
 
